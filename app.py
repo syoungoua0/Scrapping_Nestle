@@ -1,6 +1,6 @@
 # app.py
 import streamlit as st
-from scraper.bing_scraper import bing_search
+from bing_scraper import bing_search
 
 st.set_page_config(page_title="Scraper Bing PDF", page_icon="🔍")
 st.title("🔍 Scraper Bing PDF & rapports annuels")
