@@ -1,55 +1,46 @@
-# app.py
+import os
+import requests
 import streamlit as st
 from bing_scraper import bing_search
-from downloader import download_pdfs
+from pathlib import Path
 
-st.set_page_config(page_title="Scraper Bing PDF", page_icon="🔍")
+# Importer la fonction d'extraction de texte depuis le fichier pdf_extractor.py
+from pdf_extractor import extract_text_from_pdf
+
+# Créer un répertoire de téléchargement si nécessaire
+download_dir = "downloads"
+Path(download_dir).mkdir(parents=True, exist_ok=True)
+
 st.title("🔍 Scraper Bing PDF & rapports annuels")
 
-# Initialiser la session pour stocker les résultats
-if "liens_scrapes" not in st.session_state:
-    st.session_state.liens_scrapes = []
-
-# Saisie de la requête
 query = st.text_input("Entrez une requête de recherche", value="Nike annual report 2023")
-
-# Bouton de lancement de recherche
-if st.button("🔎 Lancer la recherche"):
-    with st.spinner("Recherche en cours..."):
-        resultats = bing_search(query)
-        st.session_state.liens_scrapes = resultats
-        st.success(f"{len(resultats)} lien(s) trouvé(s).")
-
-# Bouton pour afficher les résultats précédents
-if st.button("📄 Voir les résultats enregistrés"):
-    st.subheader("🔗 Liens enregistrés")
-    if st.session_state.liens_scrapes:
-        for lien in st.session_state.liens_scrapes:
-            st.write("🔗", lien)
-    else:
-        st.info("Aucun lien n'a encore été trouvé.")
 
 if st.button("Lancer la recherche"):
     with st.spinner("Recherche en cours..."):
+        # Lancer la recherche Bing pour récupérer les liens
         resultats = bing_search(query)
-        st.session_state['links'] = resultats  # Stocker les liens
+        
+        # Afficher les liens trouvés
         for lien in resultats:
             st.write("🔗", lien)
-
-    # Télécharger les PDF trouvés
-    with st.spinner("Téléchargement des fichiers PDF..."):
-        downloaded = download_pdfs(resultats)
-        st.success(f"{len(downloaded)} fichiers PDF téléchargés.")
-
-# import streamlit as st
-#from bing_scraper import bing_search
-
-#st.title("🔍 Scraper Bing PDF & rapports annuels")
-
-#query = st.text_input("Entrez une requête de recherche", value="Nike annual report 2023")
-
-#if st.button("Lancer la recherche"):
-#    with st.spinner("Recherche en cours..."):
-#        resultats = bing_search(query)
-#        for lien in resultats:
-#            st.write("🔗", lien)
+        
+        # Télécharger les fichiers PDF trouvés et extraire le texte
+        for lien in resultats:
+            if "pdf" in lien.lower():
+                # Télécharger le fichier PDF
+                pdf_path = os.path.join(download_dir, lien.split("/")[-1])
+                response = requests.get(lien, stream=True)
+                
+                if response.status_code == 200:
+                    with open(pdf_path, "wb") as f:
+                        for chunk in response.iter_content(1024):
+                            f.write(chunk)
+                    
+                    st.write(f"Fichier PDF téléchargé : {pdf_path}")
+                    
+                    # Extraire le texte du fichier PDF téléchargé
+                    extracted_text = extract_text_from_pdf(pdf_path)
+                    st.write("Texte extrait du PDF :")
+                    st.text_area("Contenu du PDF", extracted_text, height=300)
+                else:
+                    st.write(f"Erreur lors du téléchargement du PDF à {lien}")
