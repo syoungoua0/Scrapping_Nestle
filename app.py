@@ -1,6 +1,7 @@
 # app.py
 import streamlit as st
 from bing_scraper import bing_search
+from scraper.downloader import download_pdfs
 
 st.set_page_config(page_title="Scraper Bing PDF", page_icon="🔍")
 st.title("🔍 Scraper Bing PDF & rapports annuels")
@@ -27,6 +28,18 @@ if st.button("📄 Voir les résultats enregistrés"):
             st.write("🔗", lien)
     else:
         st.info("Aucun lien n'a encore été trouvé.")
+
+if st.button("Lancer la recherche"):
+    with st.spinner("Recherche en cours..."):
+        resultats = bing_search(query)
+        st.session_state['links'] = resultats  # Stocker les liens
+        for lien in resultats:
+            st.write("🔗", lien)
+
+    # Télécharger les PDF trouvés
+    with st.spinner("Téléchargement des fichiers PDF..."):
+        downloaded = download_pdfs(resultats)
+        st.success(f"{len(downloaded)} fichiers PDF téléchargés.")
 
 # import streamlit as st
 #from bing_scraper import bing_search
