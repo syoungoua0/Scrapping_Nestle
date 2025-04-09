@@ -24,6 +24,6 @@ def bing_search(query, max_results=5):
                 break
 
         return links or ["Aucun lien trouvé"]
-    
+
     except Exception as e:
         return [f"Erreur pendant la requête : {e}"]
