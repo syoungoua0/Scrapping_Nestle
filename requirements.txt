@@ -1,6 +1,7 @@
-streamlit==1.15.0
-requests==2.26.0
-beautifulsoup4==4.10.0
-PyMuPDF==1.19.6
-serpapi==2.0.0
+streamlit
+requests
+beautifulsoup4
+PyMuPDF
+serpapi
 pdfplumber
+pymupdf
